@@ -1,16 +1,9 @@
-/*
- * @Author: Amirhossein Hosseinpour <https://amirhp.com>
- * @Date Created: 2026/02/10 13:00:20
- * @Last modified by: amirhp-com <its@amirhp.com>
- * @Last modified time: 2026/02/10 21:05:12
- */
-
 import React, { useState, useEffect } from 'react';
 import {
   Copy, Check, Code2, Wand2, Settings2, Cpu,
   AlertCircle, Eye, EyeOff, Github, Globe, ShieldAlert,
   MousePointer2, Info, Download, FileJson, Layout,
-  Sun, Moon, Trash2, Zap, RefreshCw
+  Sun, Moon, Trash2, Zap, RefreshCw, Maximize2, Minimize2, X, Monitor
 } from 'lucide-react';
 import Button from './components/Button';
 import { AI_PORTALS, DEFAULT_PROMPT_TEMPLATE, SAMPLE_HTML } from './constants';
@@ -20,8 +13,9 @@ const App: React.FC = () => {
   const [sourceCode, setSourceCode] = useState('');
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [isCopied, setIsCopied] = useState(false);
-  const [htmlError, setHtmlError] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(true);
+  const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [previewContent, setPreviewContent] = useState('');
   const [activeTab, setActiveTab] = useState<'prompt' | 'json'>('prompt');
   const [pastedJson, setPastedJson] = useState('');
@@ -47,12 +41,8 @@ const App: React.FC = () => {
     const timer = setTimeout(() => {
       if (!sourceCode.trim()) {
         setPreviewContent('');
-        setHtmlError(null);
         return;
       }
-
-      // We no longer use DOMParser for validation as JSX/React syntax will trigger false negatives.
-      // Validation now happens inside the iframe's Babel transpiler.
 
       const docString = `
         <!DOCTYPE html>
@@ -101,29 +91,22 @@ const App: React.FC = () => {
               );
 
               try {
-                // Determine if code is a full component or just a snippet
                 const trimmedCode = \`${sourceCode.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`.trim();
 
                 let Content;
                 if (trimmedCode.includes('export default') || trimmedCode.includes('ReactDOM.createRoot')) {
-                  // If user provided a full setup, it's harder to wrap, so we evaluate carefully
-                  // For the sake of preview, we'll try to execute the snippet as is
                   Content = () => {
                     try {
                       return eval(trimmedCode);
                     } catch(e) { return <ErrorDisplay message={e.message} />; }
                   };
                 } else if (trimmedCode.startsWith('<') || trimmedCode.includes('return') || trimmedCode.includes('const ') || trimmedCode.includes('function ')) {
-                  // Standard React snippet or HTML with JSX tags
                   Content = () => {
                     try {
-                      // Fix: Use sourceCode.trim() instead of trimmedCode because trimmedCode is a variable defined within the iframe's script,
-                      // and cannot be accessed from the outer template literal interpolation at compile time.
                       ${sourceCode.trim().startsWith('<') ? `return (<Fragment>${sourceCode}</Fragment>);` : sourceCode}
                     } catch(e) { return <ErrorDisplay message={e.message} />; }
                   };
                 } else {
-                  // Fallback for simple strings or ambiguous HTML
                   Content = () => <div dangerouslySetInnerHTML={{ __html: trimmedCode }} />;
                 }
 
@@ -199,6 +182,30 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-20 px-4 md:px-10 max-w-full mx-auto flex flex-col gap-8 text-slate-900 dark:text-slate-200 transition-colors duration-300 bg-slate-50 dark:bg-[#0f172a]">
+      {/* Full Screen Overlay */}
+      {isFullscreen && (
+        <div className="fixed inset-0 z-[100] bg-white flex flex-col">
+          <div className="bg-slate-900 text-white px-6 py-3 flex items-center justify-between shadow-xl">
+            <div className="flex items-center gap-3">
+              <Monitor className="w-5 h-5 text-indigo-400" />
+              <span className="text-sm font-bold uppercase tracking-widest">Full Screen Live Preview</span>
+            </div>
+            <button
+              onClick={() => setIsFullscreen(false)}
+              className="p-2 hover:bg-white/10 rounded-full transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          <iframe
+            srcDoc={previewContent}
+            className="flex-grow w-full border-none"
+            title="Full View"
+            sandbox="allow-scripts allow-same-origin"
+          />
+        </div>
+      )}
+
       <header className="py-10 flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-indigo-600 rounded-2xl shadow-xl shadow-indigo-500/30 group hover:rotate-12 transition-transform cursor-pointer">
@@ -221,7 +228,7 @@ const App: React.FC = () => {
            >
              {isDarkMode ? <Sun className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" /> : <Moon className="w-5 h-5 text-slate-600 group-hover:scale-110 transition-transform" />}
            </button>
-           <a href="https://github.com/amirhp-com" target="_blank" className="p-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-700 transition-all shadow-sm">
+           <a href="https://github.com/amirhp-com/elementor-ai" target="_blank" className="p-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-700 transition-all shadow-sm">
              <Github className="w-5 h-5 text-slate-600 dark:text-slate-400" />
            </a>
            <a href="https://amirhp.com" target="_blank" className="p-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-700 transition-all shadow-sm">
@@ -267,21 +274,43 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            <div className={`grid ${showPreview ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'} divide-y lg:divide-y-0 lg:divide-x divide-slate-200 dark:divide-slate-700`}>
-              <div className="relative">
-                <textarea
-                  className="w-full h-[600px] bg-white dark:bg-slate-900/50 p-6 text-slate-800 dark:text-slate-300 code-font text-sm focus:outline-none transition-all resize-none leading-relaxed"
-                  placeholder="Paste your HTML, Tailwind, or React/JSX code here..."
-                  value={sourceCode}
-                  onChange={(e) => setSourceCode(e.target.value)}
-                />
-                <div className="absolute bottom-4 right-6 text-[10px] text-slate-400 dark:text-slate-600 font-mono pointer-events-none">
-                  {sourceCode.length} chars
+            <div className={`grid ${showPreview && !isPreviewExpanded ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'} divide-y lg:divide-y-0 lg:divide-x divide-slate-200 dark:divide-slate-700`}>
+              {/* Editor Side */}
+              {(!isPreviewExpanded || !showPreview) && (
+                <div className="relative">
+                  <textarea
+                    className="w-full h-[600px] bg-white dark:bg-slate-900/50 p-6 text-slate-800 dark:text-slate-300 code-font text-sm focus:outline-none transition-all resize-none leading-relaxed"
+                    placeholder="Paste your HTML, Tailwind, or React/JSX code here..."
+                    value={sourceCode}
+                    onChange={(e) => setSourceCode(e.target.value)}
+                  />
+                  <div className="absolute bottom-4 right-6 text-[10px] text-slate-400 dark:text-slate-600 font-mono pointer-events-none">
+                    {sourceCode.length} chars
+                  </div>
                 </div>
-              </div>
+              )}
 
+              {/* Preview Side */}
               {showPreview && (
-                <div className="h-[600px] bg-white relative">
+                <div className="h-[600px] bg-white relative flex flex-col">
+                  {/* Preview Toolbar */}
+                  <div className="absolute top-4 right-4 z-10 flex items-center gap-2 bg-slate-900/80 backdrop-blur-md p-1.5 rounded-xl border border-white/10 shadow-2xl">
+                    <button
+                      onClick={() => setIsPreviewExpanded(!isPreviewExpanded)}
+                      className="p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
+                      title={isPreviewExpanded ? "Split View" : "Full Width View"}
+                    >
+                      {isPreviewExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                    </button>
+                    <button
+                      onClick={() => setIsFullscreen(true)}
+                      className="p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
+                      title="Full Screen Mode"
+                    >
+                      <Monitor className="w-4 h-4" />
+                    </button>
+                  </div>
+
                   {!sourceCode.trim() ? (
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-300 pointer-events-none p-8 text-center bg-slate-50 dark:bg-slate-900/10">
                       <Layout className="w-10 h-10 mb-4 opacity-10 text-slate-900" />
@@ -341,7 +370,7 @@ const App: React.FC = () => {
                 onClick={handleGeneratePrompt}
                 disabled={!sourceCode.trim()}
               >
-                <Wand2 className="w-6 h-6 mr-3" /> Generate Master Prompt v1.5
+                <Wand2 className="w-6 h-6 mr-3" /> Generate Master Prompt v1.4
               </Button>
             </div>
           </div>
@@ -458,7 +487,7 @@ const App: React.FC = () => {
         <div className="flex-grow">
           <h4 className="text-slate-900 dark:text-slate-100 font-black text-sm mb-3 uppercase tracking-[0.2em]">Developer Integrity Notice</h4>
           <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed italic font-medium">
-            This workspace is curated by <strong>amirhp-com</strong>. The v1.5 logic is tuned for Elementor v3.0+ Flexbox Containers.
+            This workspace is curated by <strong>amirhp-com</strong>. The v1.4 logic is tuned for Elementor v3.0+ Flexbox Containers.
             While highly optimized, we recommend manual verification of <strong>Dynamic Tags</strong> and <strong>Internal Links</strong> after importing the generated JSON.
             This utility provides the architecture; final execution depends on your choice of LLM.
           </p>
@@ -470,7 +499,7 @@ const App: React.FC = () => {
           <a href="https://amirhp.com" target="_blank" rel="noopener noreferrer" className="text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all flex items-center gap-4 font-black text-sm bg-white dark:bg-slate-800/40 px-8 py-4 rounded-2xl border border-slate-200 dark:border-slate-700/50 shadow-xl hover:shadow-indigo-500/10 uppercase tracking-widest group">
             <Globe className="w-5 h-5 group-hover:rotate-45 transition-transform" /> Visit amirhp.com
           </a>
-          <a href="https://github.com/amirhp-com" target="_blank" rel="noopener noreferrer" className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all flex items-center gap-4 font-black text-sm bg-white dark:bg-slate-800/40 px-8 py-4 rounded-2xl border border-slate-200 dark:border-slate-700/50 shadow-xl hover:shadow-white/5 uppercase tracking-widest group">
+          <a href="https://github.com/amirhp-com/elementor-ai" target="_blank" rel="noopener noreferrer" className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all flex items-center gap-4 font-black text-sm bg-white dark:bg-slate-800/40 px-8 py-4 rounded-2xl border border-slate-200 dark:border-slate-700/50 shadow-xl hover:shadow-white/5 uppercase tracking-widest group">
             <Github className="w-5 h-5 group-hover:scale-110 transition-transform" /> Open Source
           </a>
         </div>
@@ -480,7 +509,7 @@ const App: React.FC = () => {
           </p>
           <div className="flex items-center justify-center gap-4">
             <p className="text-slate-500 dark:text-slate-600 text-[12px] uppercase tracking-[0.5em] font-black">Signature Developer Tools by amirhp.com</p>
-            <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 text-[10px] font-black rounded-full border border-indigo-200 dark:border-indigo-800 animate-pulse shadow-sm">v1.5</span>
+            <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 text-[10px] font-black rounded-full border border-indigo-200 dark:border-indigo-800 animate-pulse shadow-sm">v1.4</span>
           </div>
         </div>
       </footer>
