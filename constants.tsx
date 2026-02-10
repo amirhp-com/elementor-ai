@@ -54,17 +54,17 @@ Act as a Senior WordPress & Elementor Full-Stack Developer with 10+ years of exp
    - Adjust "flex_direction", "padding", "margin", "gap", and "font_size" for each breakpoint.
 3. **RTL Optimization**:
    ${config.includeRTL ? "- Detect Persian/Arabic content. If present, mirror flex alignments (e.g., 'flex-start' becomes 'flex-end') and switch horizontal padding/margin logic for RTL compatibility." : "- Standard LTR alignment."}
-4. **Performance**: 
-   - Avoid deep nesting. 
-   - Use Elementor's native widget settings for 95% of styling. 
+4. **Performance**:
+   - Avoid deep nesting.
+   - Use Elementor's native widget settings for 95% of styling.
    - Use "custom_css" only for complex CSS pseudo-elements (::before, ::after) or hover transitions that the UI cannot handle natively.
 
 ### WIDGET MAPPING STRATEGY:
 1. **Headings & Text**: Map to "Heading" and "Text Editor" widgets. Ensure HTML tags (h1-h6, p) are preserved.
-2. **Media**: 
-   - Images -> "Image" widget. 
+2. **Media**:
+   - Images -> "Image" widget.
    - Backgrounds -> Container "background_overlay" or "background".
-3. **Icons & SVGs**: 
+3. **Icons & SVGs**:
    - Convert all UI icons to optimized, minified SVG code.
    - Place SVGs inside "HTML" widgets or "Icon" widgets with custom SVG upload structure.
    - **CRITICAL**: Escape all double quotes (") with backslashes (\\") within SVG strings to prevent JSON parsing errors.
@@ -74,6 +74,7 @@ Act as a Senior WordPress & Elementor Full-Stack Developer with 10+ years of exp
 1. **Pure JSON**: Return ONLY the JSON code block. No explanations, no "Here is your JSON".
 2. **Prettified**: The JSON must be well-indented and human-readable.
 3. **Completeness**: Every single div, span, and style from the source must be accounted for in the Elementor structure.
+3. **JSON FORMAT**: always remember to include "version": "0.4", "title": "{generate_title}", "type": "container" at top of json.
 
 ---
 ### INPUT CODE TO CONVERT:
