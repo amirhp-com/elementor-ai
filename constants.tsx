@@ -5,49 +5,49 @@ export const AI_PORTALS: AIPortal[] = [
   {
     name: 'Google AI Studio',
     url: 'https://aistudio.google.com/u/2/prompts/new_chat?model=gemini-3-flash-preview',
-    icon: <img src="img/google-ai-studio.svg" className="w-5 h-5 rounded-sm" alt="Google AI Studio" />,
+    icon: <img src="dist/google-ai-studio.svg" className="w-5 h-5 rounded-sm" alt="Google AI Studio" />,
     color: 'bg-slate-900 border-blue-400/30 hover:bg-blue-900/20'
   },
   {
     name: 'Gemini',
     url: 'https://gemini.google.com/',
-    icon: <img src="img/gemini.svg" className="w-5 h-5" alt="Gemini" />,
+    icon: <img src="dist/gemini.svg" className="w-5 h-5 rounded-sm" alt="Gemini" />,
     color: 'bg-slate-900 border-blue-500/30 hover:bg-blue-900/20'
   },
   {
     name: 'Claude',
     url: 'https://claude.ai/',
-    icon: <img src="img/claude.svg" className="w-5 h-5 rounded-sm" alt="Claude" />,
+    icon: <img src="dist/claude.svg" className="w-5 h-5 rounded-sm" alt="Claude" />,
     color: 'bg-slate-900 border-orange-500/30 hover:bg-orange-900/20'
   },
   {
     name: 'ChatGPT',
     url: 'https://chat.openai.com/',
-    icon: <img src="img/gpt.svg" className="w-5 h-5 rounded-sm" alt="ChatGPT" />,
+    icon: <img src="dist/gpt.svg" className="w-5 h-5 rounded-sm" alt="ChatGPT" />,
     color: 'bg-slate-900 border-emerald-500/30 hover:bg-emerald-900/20'
   },
   {
     name: 'DeepSeek',
     url: 'https://chat.deepseek.com/',
-    icon: <img src="img/deepseek.svg" className="w-5 h-5 rounded-sm" alt="DeepSeek" />,
+    icon: <img src="dist/deepseek.svg" className="w-5 h-5 rounded-sm" alt="DeepSeek" />,
     color: 'bg-slate-900 border-cyan-500/30 hover:bg-cyan-900/20'
   },
   {
     name: 'Perplexity',
     url: 'https://perplexity.ai/',
-    icon: <img src="img/perplexity.ico" className="w-5 h-5 rounded-sm" alt="Perplexity" />,
+    icon: <img src="dist/perplexity.ico" className="w-5 h-5 rounded-sm" alt="Perplexity" />,
     color: 'bg-slate-900 border-indigo-500/30 hover:bg-indigo-900/20'
   },
   {
     name: 'Mistral',
     url: 'https://chat.mistral.ai/',
-    icon: <img src="img/mistral.svg" className="w-5 h-5 rounded-sm" alt="Mistral" />,
+    icon: <img src="dist/mistral.svg" className="w-5 h-5 rounded-sm" alt="Mistral" />,
     color: 'bg-slate-900 border-amber-500/30 hover:bg-amber-900/20'
   },
   {
     name: 'Grok (xAI)',
     url: 'https://grok.com/',
-    icon: <img src="img/grok.svg" className="w-5 h-5 rounded-sm" alt="Grok" />,
+    icon: <img src="dist/grok.svg" className="w-5 h-5 rounded-sm" alt="Grok" />,
     color: 'bg-slate-900 border-white/30 hover:bg-white/5'
   }
 ];
