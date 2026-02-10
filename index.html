@@ -3,15 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elementor AI Prompt Master | By Amirhp-Com</title>
+    <title>Elementor AI Prompt Master v1.9 | By Amirhp-Com</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" type="image/x-icon" href="favicon.png">
+    <link rel="icon" type="image/png" href="favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         darkMode: 'class',
         theme: {
-          extend: {}
+          extend: {
+            colors: {
+              // Reverting to Midnight/Indigo palette
+            }
+          }
         }
       }
     </script>
@@ -20,6 +24,7 @@
             font-family: 'Inter', sans-serif;
             margin: 0;
             overflow-x: hidden;
+            letter-spacing: -0.01em;
         }
         .code-font {
             font-family: 'Fira Code', monospace;
@@ -31,20 +36,21 @@
             background: transparent;
         }
         .dark ::-webkit-scrollbar-track {
-            background: #1e293b;
+            background: #020617;
         }
         ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
+            background: #334155;
             border-radius: 4px;
         }
-        .dark ::-webkit-scrollbar-thumb {
-            background: #334155;
-        }
         ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        .dark ::-webkit-scrollbar-thumb:hover {
             background: #475569;
+        }
+        @keyframes toast-in {
+            from { transform: translateY(20px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        .animate-toast {
+            animation: toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
     </style>
 <script type="importmap">
@@ -59,11 +65,9 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
 </head>
-<body class="bg-slate-50 dark:bg-[#0f172a] transition-colors duration-300">
+<body class="bg-slate-950 text-slate-200 transition-colors duration-300">
     <div id="root"></div>
-    <!-- Vite handles the transpilation of this .tsx file into .js -->
     <script type="module" src="/index.tsx"></script>
 </body>
 </html>

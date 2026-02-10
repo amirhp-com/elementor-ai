@@ -1,48 +1,58 @@
-
 import React from 'react';
-import { AIPortal, PromptConfig } from './types';
+import { AIPortal } from './types';
 
 export const AI_PORTALS: AIPortal[] = [
   {
     name: 'Google AI Studio',
     url: 'https://aistudio.google.com/u/2/prompts/new_chat?model=gemini-3-flash-preview',
-    icon: '✨',
-    color: 'bg-blue-600 hover:bg-blue-500'
+    icon: <img src="img/google-ai-studio.svg" className="w-5 h-5 rounded-sm" alt="Google AI Studio" />,
+    color: 'bg-slate-900 border-blue-400/30 hover:bg-blue-900/20'
   },
   {
     name: 'Gemini',
     url: 'https://gemini.google.com/',
-    icon: '♊',
-    color: 'bg-indigo-600 hover:bg-indigo-500'
-  },
-  {
-    name: 'Google Cloud AI',
-    url: 'https://console.cloud.google.com/vertex-ai',
-    icon: '☁️',
-    color: 'bg-sky-700 hover:bg-sky-600'
+    icon: <img src="img/gemini.svg" className="w-5 h-5" alt="Gemini" />,
+    color: 'bg-slate-900 border-blue-500/30 hover:bg-blue-900/20'
   },
   {
     name: 'Claude',
     url: 'https://claude.ai/',
-    icon: '🎙️',
-    color: 'bg-orange-700 hover:bg-orange-600'
-  },
-  {
-    name: 'DeepSeek',
-    url: 'https://chat.deepseek.com/',
-    icon: '🐳',
-    color: 'bg-cyan-600 hover:bg-cyan-500'
+    icon: <img src="img/claude.svg" className="w-5 h-5 rounded-sm" alt="Claude" />,
+    color: 'bg-slate-900 border-orange-500/30 hover:bg-orange-900/20'
   },
   {
     name: 'ChatGPT',
     url: 'https://chat.openai.com/',
-    icon: '🤖',
-    color: 'bg-emerald-600 hover:bg-emerald-500'
+    icon: <img src="img/gpt.svg" className="w-5 h-5 rounded-sm" alt="ChatGPT" />,
+    color: 'bg-slate-900 border-emerald-500/30 hover:bg-emerald-900/20'
+  },
+  {
+    name: 'DeepSeek',
+    url: 'https://chat.deepseek.com/',
+    icon: <img src="img/deepseek.svg" className="w-5 h-5 rounded-sm" alt="DeepSeek" />,
+    color: 'bg-slate-900 border-cyan-500/30 hover:bg-cyan-900/20'
+  },
+  {
+    name: 'Perplexity',
+    url: 'https://perplexity.ai/',
+    icon: <img src="img/perplexity.ico" className="w-5 h-5 rounded-sm" alt="Perplexity" />,
+    color: 'bg-slate-900 border-indigo-500/30 hover:bg-indigo-900/20'
+  },
+  {
+    name: 'Mistral',
+    url: 'https://chat.mistral.ai/',
+    icon: <img src="img/mistral.svg" className="w-5 h-5 rounded-sm" alt="Mistral" />,
+    color: 'bg-slate-900 border-amber-500/30 hover:bg-amber-900/20'
+  },
+  {
+    name: 'Grok (xAI)',
+    url: 'https://grok.com/',
+    icon: <img src="img/grok.svg" className="w-5 h-5 rounded-sm" alt="Grok" />,
+    color: 'bg-slate-900 border-white/30 hover:bg-white/5'
   }
 ];
 
-export const DEFAULT_PROMPT_TEMPLATE = (code: string, config: PromptConfig) => `
-Act as a Senior WordPress & Elementor Full-Stack Developer with 10+ years of experience in high-performance UI conversion. Your task is to convert the provided [HTML/React] code into a valid, production-ready Elementor JSON Template (Schema v3.0+).
+export const INITIAL_PROMPT_TEMPLATE = `Act as a Senior WordPress & Elementor Full-Stack Developer with 10+ years of experience in high-performance UI conversion. Your task is to convert the provided [HTML/React] code into a valid, production-ready Elementor JSON Template (Schema v3.0+).
 
 ### CORE ARCHITECTURAL RULES:
 1. **Container Hierarchy (Flexbox First)**:
@@ -52,12 +62,12 @@ Act as a Senior WordPress & Elementor Full-Stack Developer with 10+ years of exp
 2. **Responsive Precision**:
    - You MUST explicitly define responsive values for **Desktop**, **tablet**, and **mobile** devices.
    - Adjust "flex_direction", "padding", "margin", "gap", and "font_size" for each breakpoint.
-3. **RTL Optimization**:
-   ${config.includeRTL ? "- Detect Persian/Arabic content. If present, mirror flex alignments (e.g., 'flex-start' becomes 'flex-end') and switch horizontal padding/margin logic for RTL compatibility." : "- Standard LTR alignment."}
+3. **RTL Optimization**: {{RTL_INSTRUCTION}}
 4. **Performance**:
    - Avoid deep nesting.
    - Use Elementor's native widget settings for 95% of styling.
    - Use "custom_css" only for complex CSS pseudo-elements (::before, ::after) or hover transitions that the UI cannot handle natively.
+5. Grid: {{GRID_INSTRUCTION}}
 
 ### WIDGET MAPPING STRATEGY:
 1. **Headings & Text**: Map to "Heading" and "Text Editor" widgets. Ensure HTML tags (h1-h6, p) are preserved.
@@ -92,19 +102,46 @@ Act as a Senior WordPress & Elementor Full-Stack Developer with 10+ years of exp
 19. **Testing and Validation**: After generating the JSON, validate it against Elementor's schema to ensure it can be imported without errors. If any issues are detected, adjust the JSON structure accordingly to meet Elementor's requirements.
 
 ---
-### INPUT CODE TO CONVERT:
-\`\`\`html
-${code}
+### INPUT CODE:
+\`\`\`
+{{CODE}}
 \`\`\`
 ---
 
-Generate the complete Elementor JSON now.  Give in Code Block . to Easy Copy, Prettify and Indent JSON Code.
-`.trim();
+Generate the complete Elementor JSON now.  Give in Code Block . to Easy Copy, Prettify and Indent json Code.`.trim();
 
-export const SAMPLE_HTML = `<div class="p-8 bg-indigo-600 rounded-3xl text-white shadow-2xl flex flex-col items-center gap-4">
-  <h2 class="text-3xl font-bold">Hello World!</h2>
-  <p class="text-indigo-100 text-center">This is a sample component generated to test the Elementor AI Prompt Master v1.6</p>
-  <button class="px-6 py-2 bg-white text-indigo-600 rounded-full font-bold hover:bg-indigo-50 transition-colors">
-    Get Started
-  </button>
+export const SAMPLE_HTML = `<div class="p-10 bg-indigo-900 rounded-2xl text-white shadow-xl flex flex-col items-center gap-6 border border-white/10">
+  <h2 class="text-3xl font-semibold tracking-tight">Midnight HTML</h2>
+  <p class="text-indigo-200 text-center max-w-sm">This is a pure HTML sample for Elementor conversion.</p>
+  <button class="px-6 py-2 bg-indigo-500 rounded-lg font-medium hover:bg-indigo-400">Action</button>
 </div>`;
+
+export const SAMPLE_JSX = `<div className="p-10 bg-indigo-950 rounded-2xl text-white flex flex-col gap-4">
+  <h2 className="text-2xl font-bold">Midnight JSX</h2>
+  <ul className="space-y-2">
+    {[1, 2, 3].map(i => (
+      <li key={i} className="flex items-center gap-2">
+        <span className="w-2 h-2 bg-indigo-400 rounded-full" />
+        Feature Item {i}
+      </li>
+    ))}
+  </ul>
+</div>`;
+
+export const SAMPLE_COMPONENT = `function MidnightHero() {
+  const [active, setActive] = React.useState(false);
+  return (
+    <div className="relative overflow-hidden bg-slate-900 p-12 rounded-3xl border border-white/5">
+      <div className="relative z-10">
+        <h1 className="text-5xl font-extrabold text-white mb-4">The Future is Indigo</h1>
+        <p className="text-slate-400 text-lg mb-8 max-w-lg">A full React component sample ready for Elementor translation.</p>
+        <button
+          onClick={() => setActive(!active)}
+          className="px-8 py-3 bg-indigo-600 rounded-xl text-white font-semibold transition-all active:scale-95"
+        >
+          {active ? 'Active Mode' : 'Explore Now'}
+        </button>
+      </div>
+    </div>
+  );
+}`;
