@@ -103,7 +103,7 @@ Generate the complete Elementor JSON now.
 
 export const SAMPLE_HTML = `<div class="p-8 bg-indigo-600 rounded-3xl text-white shadow-2xl flex flex-col items-center gap-4">
   <h2 class="text-3xl font-bold">Hello World!</h2>
-  <p class="text-indigo-100 text-center">This is a sample component generated to test the Elementor AI Prompt Master v1.5</p>
+  <p class="text-indigo-100 text-center">This is a sample component generated to test the Elementor AI Prompt Master v1.6</p>
   <button class="px-6 py-2 bg-white text-indigo-600 rounded-full font-bold hover:bg-indigo-50 transition-colors">
     Get Started
   </button>

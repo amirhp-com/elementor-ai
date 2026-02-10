@@ -3,7 +3,7 @@ import {
   Copy, Check, Code2, Wand2, Settings2, Cpu,
   AlertCircle, Eye, EyeOff, Github, Globe, ShieldAlert,
   MousePointer2, Info, Download, FileJson, Layout,
-  Sun, Moon, Trash2, Zap, RefreshCw, Maximize2, Minimize2, X, Monitor
+  Sun, Moon, Trash2, Zap, RefreshCw, Maximize2, Minimize2, X, Monitor, Loader2
 } from 'lucide-react';
 import Button from './components/Button';
 import { AI_PORTALS, DEFAULT_PROMPT_TEMPLATE, SAMPLE_HTML } from './constants';
@@ -16,6 +16,7 @@ const App: React.FC = () => {
   const [showPreview, setShowPreview] = useState(true);
   const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [previewContent, setPreviewContent] = useState('');
   const [activeTab, setActiveTab] = useState<'prompt' | 'json'>('prompt');
   const [pastedJson, setPastedJson] = useState('');
@@ -38,12 +39,14 @@ const App: React.FC = () => {
 
   // Advanced Preview Engine (Supports HTML, JSX, and React)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!sourceCode.trim()) {
-        setPreviewContent('');
-        return;
-      }
+    if (!sourceCode.trim()) {
+      setPreviewContent('');
+      setIsPreviewLoading(false);
+      return;
+    }
 
+    setIsPreviewLoading(true);
+    const timer = setTimeout(() => {
       const docString = `
         <!DOCTYPE html>
         <html lang="en">
@@ -121,6 +124,8 @@ const App: React.FC = () => {
       `;
 
       setPreviewContent(docString);
+      // Give a tiny buffer for Babel to start working before hiding spinner
+      setTimeout(() => setIsPreviewLoading(false), 200);
     }, 600);
 
     return () => clearTimeout(timer);
@@ -132,7 +137,8 @@ const App: React.FC = () => {
     setGeneratedPrompt(prompt);
     setActiveTab('prompt');
     if (window.innerWidth < 1024) {
-      document.getElementById('output-section')?.scrollIntoView({ behavior: 'smooth' });
+      const outputSection = document.getElementById('output-section');
+      outputSection?.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -148,9 +154,10 @@ const App: React.FC = () => {
   };
 
   const handleClear = () => {
-    if (confirm("Clear all source code?")) {
-      setSourceCode('');
-    }
+    setSourceCode('');
+    setGeneratedPrompt('');
+    setPastedJson('');
+    setPreviewContent('');
   };
 
   const loadSample = () => {
@@ -294,7 +301,7 @@ const App: React.FC = () => {
               {showPreview && (
                 <div className="h-[600px] bg-white relative flex flex-col">
                   {/* Preview Toolbar */}
-                  <div className="absolute top-4 right-4 z-10 flex items-center gap-2 bg-slate-900/80 backdrop-blur-md p-1.5 rounded-xl border border-white/10 shadow-2xl">
+                  <div className="absolute top-4 right-4 z-20 flex items-center gap-2 bg-slate-900/80 backdrop-blur-md p-1.5 rounded-xl border border-white/10 shadow-2xl">
                     <button
                       onClick={() => setIsPreviewExpanded(!isPreviewExpanded)}
                       className="p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
@@ -311,6 +318,17 @@ const App: React.FC = () => {
                     </button>
                   </div>
 
+                  {/* Loading Spinner Overlay */}
+                  {isPreviewLoading && (
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 dark:bg-slate-900/60 backdrop-blur-[2px] transition-all duration-300">
+                      <div className="relative">
+                        <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+                        <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full animate-pulse"></div>
+                      </div>
+                      <p className="mt-4 text-[10px] font-black uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400">Rendering UI</p>
+                    </div>
+                  )}
+
                   {!sourceCode.trim() ? (
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-300 pointer-events-none p-8 text-center bg-slate-50 dark:bg-slate-900/10">
                       <Layout className="w-10 h-10 mb-4 opacity-10 text-slate-900" />
@@ -319,7 +337,8 @@ const App: React.FC = () => {
                   ) : (
                     <iframe
                       srcDoc={previewContent}
-                      className="w-full h-full border-none"
+                      className="w-full h-full border-none transition-opacity duration-300"
+                      style={{ opacity: isPreviewLoading ? 0.3 : 1 }}
                       title="UI Preview"
                       sandbox="allow-scripts allow-same-origin"
                     />
@@ -370,7 +389,7 @@ const App: React.FC = () => {
                 onClick={handleGeneratePrompt}
                 disabled={!sourceCode.trim()}
               >
-                <Wand2 className="w-6 h-6 mr-3" /> Generate Master Prompt v1.4
+                <Wand2 className="w-6 h-6 mr-3" /> Generate Master Prompt v1.6
               </Button>
             </div>
           </div>
@@ -487,7 +506,7 @@ const App: React.FC = () => {
         <div className="flex-grow">
           <h4 className="text-slate-900 dark:text-slate-100 font-black text-sm mb-3 uppercase tracking-[0.2em]">Developer Integrity Notice</h4>
           <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed italic font-medium">
-            This workspace is curated by <strong>amirhp-com</strong>. The v1.4 logic is tuned for Elementor v3.0+ Flexbox Containers.
+            This workspace is curated by <strong>amirhp-com</strong>. The v1.6 logic is tuned for Elementor v3.0+ Flexbox Containers.
             While highly optimized, we recommend manual verification of <strong>Dynamic Tags</strong> and <strong>Internal Links</strong> after importing the generated JSON.
             This utility provides the architecture; final execution depends on your choice of LLM.
           </p>
@@ -509,7 +528,7 @@ const App: React.FC = () => {
           </p>
           <div className="flex items-center justify-center gap-4">
             <p className="text-slate-500 dark:text-slate-600 text-[12px] uppercase tracking-[0.5em] font-black">Signature Developer Tools by amirhp.com</p>
-            <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 text-[10px] font-black rounded-full border border-indigo-200 dark:border-indigo-800 animate-pulse shadow-sm">v1.4</span>
+            <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 text-[10px] font-black rounded-full border border-indigo-200 dark:border-indigo-800 animate-pulse shadow-sm">v1.6</span>
           </div>
         </div>
       </footer>

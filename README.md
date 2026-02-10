@@ -1,6 +1,12 @@
-# Elementor AI Prompt Master v1.5
+# Elementor AI Prompt Master v1.6
 
 A professional utility for developers to convert HTML/React code into high-quality Elementor JSON templates.
+
+## 🌟 New in v1.6
+- **Enhanced Live Preview**: Added Full-Width and Full-Screen viewing modes for better responsive testing.
+- **Rendering States**: Integrated loading spinners and debounced rendering for a smoother UI experience.
+- **Stability Fixes**: Refactored the code clearing logic and updated project repository references.
+- **Improved Preview Engine**: Better handling of React fragments and inline styles.
 
 ## 🚀 Deployment (Crucial)
 This app uses TypeScript and JSX. You **cannot** simply upload the source files to a static host. You must use a build tool like Vite.
