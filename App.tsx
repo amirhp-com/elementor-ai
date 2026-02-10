@@ -4,7 +4,7 @@ import {
   AlertCircle, Eye, EyeOff, Github, Globe, ShieldAlert,
   MousePointer2, Info, Download, FileJson, Layout,
   Sun, Moon, Trash2, Zap, RefreshCw, Maximize2, Minimize2, X, Monitor, Loader2,
-  FileCode, SquareTerminal, Layers, Settings, Save, Upload, ArrowUp, Command
+  FileCode, SquareTerminal, Layers, Settings, Save, Upload, ArrowUp, Command, RotateCcw
 } from 'lucide-react';
 import Button from './components/Button';
 import { AI_PORTALS, INITIAL_PROMPT_TEMPLATE, SAMPLE_HTML, SAMPLE_JSX, SAMPLE_COMPONENT } from './constants';
@@ -57,6 +57,11 @@ const App: React.FC = () => {
     if (config.inputMode === 'component') sample = SAMPLE_COMPONENT;
     setSourceCode(sample);
     addToast(`Loaded Default ${config.inputMode.toUpperCase()}`, 'info');
+  };
+
+  const handleResetTemplate = () => {
+    setCustomPrompt(INITIAL_PROMPT_TEMPLATE);
+    addToast('Default Template Restored', 'info');
   };
 
   const handleGeneratePrompt = () => {
@@ -291,13 +296,18 @@ const App: React.FC = () => {
                 onChange={(e) => setCustomPrompt(e.target.value)}
               />
             </div>
-            <div className="p-6 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-white/10 flex justify-end gap-3">
-              <Button variant="outline" onClick={() => addToast('Template Data Downloaded', 'info')} className="gap-2">
-                <Download className="w-4 h-4" /> Export Config
+            <div className="p-6 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-white/10 flex justify-between gap-3">
+              <Button variant="outline" onClick={handleResetTemplate} className="gap-2 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/30">
+                <RotateCcw className="w-4 h-4" /> Load Default Template
               </Button>
-              <Button variant="primary" onClick={() => setIsPromptModalOpen(false)} className="gap-2 px-10">
-                <Save className="w-4 h-4" /> Save Template
-              </Button>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => addToast('Template Data Downloaded', 'info')} className="gap-2">
+                  <Download className="w-4 h-4" /> Export Config
+                </Button>
+                <Button variant="primary" onClick={() => setIsPromptModalOpen(false)} className="gap-2 px-10">
+                  <Save className="w-4 h-4" /> Save Template
+                </Button>
+              </div>
             </div>
           </div>
         </div>
