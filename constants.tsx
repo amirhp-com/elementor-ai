@@ -98,7 +98,7 @@ ${code}
 \`\`\`
 ---
 
-Generate the complete Elementor JSON now.
+Generate the complete Elementor JSON now.  Give in Code Block . to Easy Copy, Prettify and Indent JSON Code.
 `.trim();
 
 export const SAMPLE_HTML = `<div class="p-8 bg-indigo-600 rounded-3xl text-white shadow-2xl flex flex-col items-center gap-4">
