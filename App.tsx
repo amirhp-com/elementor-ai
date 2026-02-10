@@ -152,7 +152,7 @@ const App: React.FC = () => {
               Elementor <span className="text-indigo-600 dark:text-indigo-400">AI</span> Prompt
             </h1>
             <p className="text-slate-600 dark:text-slate-400 mt-1 font-medium tracking-wide">
-              Advanced HTML/JSX Bridge Code to Elementor v3.0+ Architecture — Built for Senior Developers by <a href="https://amirhp.com/" target="_blank" className="text-indigo-600 dark:text-indigo-400 underline decoration-indigo-400/30">Amirhp-Com</a>
+              Advanced HTML/JSX Bridge Code to Elementor v3.0+ Architecture
             </p>
           </div>
         </div>
