@@ -1,3 +1,10 @@
+/*
+ * @Author: Amirhossein Hosseinpour <https://amirhp.com>
+ * @Date Created: 2026/02/10 13:00:20
+ * @Last modified by: amirhp-com <its@amirhp.com>
+ * @Last modified time: 2026/02/10 21:05:12
+ */
+
 import React, { useState, useEffect } from 'react';
 import {
   Copy, Check, Code2, Wand2, Settings2, Cpu,
@@ -35,7 +42,7 @@ const App: React.FC = () => {
     }
   }, [isDarkMode]);
 
-  // Debounced Preview Engine
+  // Advanced Preview Engine (Supports HTML, JSX, and React)
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!sourceCode.trim()) {
@@ -44,10 +51,8 @@ const App: React.FC = () => {
         return;
       }
 
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(sourceCode, 'text/html');
-      const errorNode = doc.querySelector('parsererror');
-      setHtmlError(errorNode ? 'Syntax error in HTML structure' : null);
+      // We no longer use DOMParser for validation as JSX/React syntax will trigger false negatives.
+      // Validation now happens inside the iframe's Babel transpiler.
 
       const docString = `
         <!DOCTYPE html>
@@ -56,6 +61,9 @@ const App: React.FC = () => {
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <script src="https://cdn.tailwindcss.com"></script>
+            <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+            <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+            <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
             <style>
               body {
                 background: white;
@@ -67,14 +75,70 @@ const App: React.FC = () => {
                 overflow-x: hidden;
               }
               * { max-width: 100%; box-sizing: border-box; }
+              #preview-root { width: 100%; height: 100%; }
+              .error-box {
+                background: #fee2e2;
+                border: 1px solid #ef4444;
+                color: #b91c1c;
+                padding: 1rem;
+                border-radius: 0.5rem;
+                font-family: monospace;
+                font-size: 12px;
+                white-space: pre-wrap;
+              }
             </style>
           </head>
-          <body>${sourceCode}</body>
+          <body>
+            <div id="preview-root"></div>
+            <script type="text/babel">
+              const { useState, useEffect, useMemo, useCallback, useRef, Fragment } = React;
+
+              const ErrorDisplay = ({ message }) => (
+                <div className="error-box">
+                  <strong>Preview Error:</strong><br/>
+                  {message}
+                </div>
+              );
+
+              try {
+                // Determine if code is a full component or just a snippet
+                const trimmedCode = \`${sourceCode.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`.trim();
+
+                let Content;
+                if (trimmedCode.includes('export default') || trimmedCode.includes('ReactDOM.createRoot')) {
+                  // If user provided a full setup, it's harder to wrap, so we evaluate carefully
+                  // For the sake of preview, we'll try to execute the snippet as is
+                  Content = () => {
+                    try {
+                      return eval(trimmedCode);
+                    } catch(e) { return <ErrorDisplay message={e.message} />; }
+                  };
+                } else if (trimmedCode.startsWith('<') || trimmedCode.includes('return') || trimmedCode.includes('const ') || trimmedCode.includes('function ')) {
+                  // Standard React snippet or HTML with JSX tags
+                  Content = () => {
+                    try {
+                      // Fix: Use sourceCode.trim() instead of trimmedCode because trimmedCode is a variable defined within the iframe's script,
+                      // and cannot be accessed from the outer template literal interpolation at compile time.
+                      ${sourceCode.trim().startsWith('<') ? `return (<Fragment>${sourceCode}</Fragment>);` : sourceCode}
+                    } catch(e) { return <ErrorDisplay message={e.message} />; }
+                  };
+                } else {
+                  // Fallback for simple strings or ambiguous HTML
+                  Content = () => <div dangerouslySetInnerHTML={{ __html: trimmedCode }} />;
+                }
+
+                const root = ReactDOM.createRoot(document.getElementById('preview-root'));
+                root.render(<Content />);
+              } catch (err) {
+                document.getElementById('preview-root').innerHTML = \`<div class="error-box"><strong>Compiler Error:</strong><br/>\${err.message}</div>\`;
+              }
+            </script>
+          </body>
         </html>
-      `.replace(/<\/script>/g, '<\\/script>');
+      `;
 
       setPreviewContent(docString);
-    }, 500);
+    }, 600);
 
     return () => clearTimeout(timer);
   }, [sourceCode]);
@@ -84,7 +148,6 @@ const App: React.FC = () => {
     const prompt = DEFAULT_PROMPT_TEMPLATE(sourceCode, config);
     setGeneratedPrompt(prompt);
     setActiveTab('prompt');
-    // Scroll to output on mobile
     if (window.innerWidth < 1024) {
       document.getElementById('output-section')?.scrollIntoView({ behavior: 'smooth' });
     }
@@ -115,15 +178,9 @@ const App: React.FC = () => {
     if (!pastedJson.trim()) return;
     try {
       JSON.parse(pastedJson);
-
       const now = new Date();
-      const mm = (now.getMonth() + 1).toString().padStart(2, '0');
-      const dd = now.getDate().toString().padStart(2, '0');
-      const hh = now.getHours().toString().padStart(2, '0');
-      const mi = now.getMinutes().toString().padStart(2, '0');
-      const ss = now.getSeconds().toString().padStart(2, '0');
-
-      const filename = `elementor-ai-${mm}${dd}${hh}${mi}${ss}.json`;
+      const timestamp = now.toISOString().replace(/[:.-]/g, '').slice(0, 14);
+      const filename = `elementor-ai-${timestamp}.json`;
       const blob = new Blob([pastedJson], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -174,7 +231,6 @@ const App: React.FC = () => {
       </header>
 
       <main className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-        {/* Left Side: Code and Preview */}
         <div className="lg:col-span-8 flex flex-col gap-8">
           <div className="bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col shadow-2xl">
             <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-slate-50 dark:bg-slate-800/80">
@@ -215,19 +271,13 @@ const App: React.FC = () => {
               <div className="relative">
                 <textarea
                   className="w-full h-[600px] bg-white dark:bg-slate-900/50 p-6 text-slate-800 dark:text-slate-300 code-font text-sm focus:outline-none transition-all resize-none leading-relaxed"
-                  placeholder="Paste your HTML or JSX code here..."
+                  placeholder="Paste your HTML, Tailwind, or React/JSX code here..."
                   value={sourceCode}
                   onChange={(e) => setSourceCode(e.target.value)}
                 />
                 <div className="absolute bottom-4 right-6 text-[10px] text-slate-400 dark:text-slate-600 font-mono pointer-events-none">
                   {sourceCode.length} chars
                 </div>
-                {htmlError && (
-                  <div className="absolute bottom-10 left-6 right-6 bg-red-500/10 border border-red-500/50 rounded-lg p-3 flex items-start gap-3 backdrop-blur-md">
-                    <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400 shrink-0 mt-0.5" />
-                    <p className="text-xs text-red-700 dark:text-red-200/80 line-clamp-2">{htmlError}</p>
-                  </div>
-                )}
               </div>
 
               {showPreview && (
@@ -235,13 +285,13 @@ const App: React.FC = () => {
                   {!sourceCode.trim() ? (
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-300 pointer-events-none p-8 text-center bg-slate-50 dark:bg-slate-900/10">
                       <Layout className="w-10 h-10 mb-4 opacity-10 text-slate-900" />
-                      <p className="text-xs text-slate-400 dark:text-slate-500 font-medium tracking-wide">Live UI Rendering Space</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 font-medium tracking-wide">Live React & HTML Preview</p>
                     </div>
                   ) : (
                     <iframe
                       srcDoc={previewContent}
                       className="w-full h-full border-none"
-                      title="HTML Preview"
+                      title="UI Preview"
                       sandbox="allow-scripts allow-same-origin"
                     />
                   )}
@@ -289,15 +339,14 @@ const App: React.FC = () => {
                 size="lg"
                 className="w-full py-5 text-lg font-black shadow-2xl transition-all hover:-translate-y-1"
                 onClick={handleGeneratePrompt}
-                disabled={!!htmlError || !sourceCode.trim()}
+                disabled={!sourceCode.trim()}
               >
-                <Wand2 className="w-6 h-6 mr-3" /> Generate Master Prompt v1.4
+                <Wand2 className="w-6 h-6 mr-3" /> Generate Master Prompt v1.5
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Right Side: Tabbed Output */}
         <div id="output-section" className="lg:col-span-4 flex flex-col gap-8 sticky top-8">
           <div className="bg-white dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-slate-700 p-0 flex flex-col h-full overflow-hidden shadow-2xl relative">
             <div className="flex items-center border-b border-slate-200 dark:border-slate-700">
@@ -409,7 +458,7 @@ const App: React.FC = () => {
         <div className="flex-grow">
           <h4 className="text-slate-900 dark:text-slate-100 font-black text-sm mb-3 uppercase tracking-[0.2em]">Developer Integrity Notice</h4>
           <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed italic font-medium">
-            This workspace is curated by <strong>amirhp-com</strong>. The v1.4 logic is tuned for Elementor v3.0+ Flexbox Containers.
+            This workspace is curated by <strong>amirhp-com</strong>. The v1.5 logic is tuned for Elementor v3.0+ Flexbox Containers.
             While highly optimized, we recommend manual verification of <strong>Dynamic Tags</strong> and <strong>Internal Links</strong> after importing the generated JSON.
             This utility provides the architecture; final execution depends on your choice of LLM.
           </p>
@@ -431,7 +480,7 @@ const App: React.FC = () => {
           </p>
           <div className="flex items-center justify-center gap-4">
             <p className="text-slate-500 dark:text-slate-600 text-[12px] uppercase tracking-[0.5em] font-black">Signature Developer Tools by amirhp.com</p>
-            <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 text-[10px] font-black rounded-full border border-indigo-200 dark:border-indigo-800 animate-pulse shadow-sm">v1.4</span>
+            <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 text-[10px] font-black rounded-full border border-indigo-200 dark:border-indigo-800 animate-pulse shadow-sm">v1.5</span>
           </div>
         </div>
       </footer>

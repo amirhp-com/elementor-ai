@@ -1,4 +1,4 @@
-# Elementor AI Prompt Master v1.4
+# Elementor AI Prompt Master v1.5
 
 A professional utility for developers to convert HTML/React code into high-quality Elementor JSON templates.
 
