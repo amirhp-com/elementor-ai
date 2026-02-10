@@ -17,11 +17,47 @@ A high-end professional utility for developers to bridge the gap between modern 
 - **Global AI Hub**: Direct access to top-tier AI models including Gemini, AI Studio, Claude, DeepSeek, and more.
 - **One-Click Workflow**: Instant "Generate & Copy" shortcuts (Ctrl+C / Ctrl+Enter).
 
-## 📦 Deployment
-This app is built with React 19 and Vite.
+## 🌐 cPanel Deployment Guide
 
-### Static Hosting (Netlify / Vercel)
-1. Connect your repository.
+Deploying this React application to a cPanel environment is straightforward. Follow these steps:
+
+### 1. Build the Application
+Run the following command in your terminal to generate the production-ready files:
+```bash
+npm run build
+```
+This will create a `dist` folder in your project directory.
+
+### 2. Prepare for Upload
+1. Navigate into the `dist` folder.
+2. Select all files inside and compress them into a single `.zip` file (e.g., `archive.zip`).
+
+### 3. Upload to cPanel
+1. Log in to your **cPanel dashboard**.
+2. Open **File Manager**.
+3. Go to `public_html` (for primary domain) or your specific subdomain folder.
+4. Click **Upload** and select your `archive.zip`.
+5. Once uploaded, right-click the zip file and select **Extract**.
+
+### 4. Configure .htaccess (Optional but Recommended)
+To ensure the application handles page refreshes correctly (especially if you add routing later), create a file named `.htaccess` in the same directory with this content:
+```apache
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
+```
+
+### 5. Verify the Base Path
+The `vite.config.ts` is currently configured with `base: './'`, which works perfectly for most cPanel shared hosting and subdomain setups.
+
+## 📦 Deployment (Cloud)
+If you prefer automated cloud hosting:
+1. Connect your repository to **Netlify** or **Vercel**.
 2. **Build Command**: `npm run build`
 3. **Publish Directory**: `dist`
 
