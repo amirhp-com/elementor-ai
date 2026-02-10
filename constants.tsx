@@ -12,7 +12,7 @@ export const PREDEFINED_AI_MODELS: AIModelPreset[] = [
   {
     name: 'OpenRouter (Free Models)',
     endpoint: 'https://openrouter.ai/api/v1/chat/completions',
-    model: 'meta-llama/llama-3-8b-instruct:free',
+    model: 'deepseek/deepseek-r1-0528:free',
     description: 'Access various free and paid models (Llama, Gemma, Mistral) through one API.',
     providerUrl: 'https://openrouter.ai/keys'
   },

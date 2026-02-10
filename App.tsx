@@ -5,7 +5,7 @@ import {
   MousePointer2, Info, Download, FileJson, Layout,
   Sun, Moon, Trash2, Zap, RefreshCw, Maximize2, Minimize2, X, Monitor, Loader2,
   FileCode, SquareTerminal, Layers, Settings, Save, Upload, ArrowUp, Command, RotateCcw,
-  Link, Key, Bot, Play, ExternalLink, Coins, Columns, Rows, ClipboardCheck
+  Link, Key, Bot, Play, ExternalLink, Coins, Columns, Rows, ClipboardCheck, Square
 } from 'lucide-react';
 import Button from './components/Button';
 import { AI_PORTALS, INITIAL_PROMPT_TEMPLATE, SAMPLE_HTML, SAMPLE_JSX, SAMPLE_COMPONENT, PREDEFINED_AI_MODELS } from './constants';
@@ -15,6 +15,7 @@ interface Toast {
   id: number;
   message: string;
   type: 'success' | 'info' | 'warning' | 'error';
+  persistent?: boolean;
 }
 
 const App: React.FC = () => {
@@ -52,6 +53,10 @@ const App: React.FC = () => {
 
   const [isAIProcessing, setIsAIProcessing] = useState(false);
   const [aiResponseText, setAiResponseText] = useState('');
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const timerIntervalRef = useRef<number | null>(null);
 
   const [config, setConfig] = useState<PromptConfig>({
     includeRTL: true,
@@ -60,12 +65,23 @@ const App: React.FC = () => {
     inputMode: 'html'
   });
 
-  const addToast = (message: string, type: Toast['type'] = 'success') => {
+  const addToast = (message: string, type: Toast['type'] = 'success', persistent: boolean = false) => {
     const id = Date.now();
-    setToasts(prev => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 3000);
+    setToasts(prev => [...prev, { id, message, type, persistent }]);
+    if (!persistent) {
+      setTimeout(() => {
+        setToasts(prev => prev.filter(t => t.id !== id));
+      }, 3000);
+    }
+    return id;
+  };
+
+  const removeToast = (id: number) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
+
+  const updateToast = (id: number, message: string) => {
+    setToasts(prev => prev.map(t => t.id === id ? { ...t, message } : t));
   };
 
   const handleLoadSample = () => {
@@ -101,7 +117,28 @@ const App: React.FC = () => {
     }
   };
 
+  const stopAIProcessing = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+    setIsAIProcessing(false);
+    setElapsedSeconds(0);
+    // Clear any persistent toasts
+    setToasts(prev => prev.filter(t => !t.persistent));
+  };
+
   const runWithAI = async () => {
+    if (isAIProcessing) {
+      stopAIProcessing();
+      addToast('Operation Aborted', 'warning');
+      return;
+    }
+
     if (!sourceCode.trim()) {
       addToast('Input code required', 'warning');
       return;
@@ -116,7 +153,20 @@ const App: React.FC = () => {
     setGeneratedPrompt(fullPrompt);
     setIsAIProcessing(true);
     setAiResponseText('');
+    setElapsedSeconds(0);
     setActiveTab('ai-result');
+
+    const statusToastId = addToast('Initializing AI Bridge (0s)...', 'info', true);
+
+    abortControllerRef.current = new AbortController();
+
+    timerIntervalRef.current = window.setInterval(() => {
+      setElapsedSeconds(prev => {
+        const next = prev + 1;
+        updateToast(statusToastId, `AI Processing (${next}s)...`);
+        return next;
+      });
+    }, 1000);
 
     try {
       const response = await fetch(aiSettings.endpoint, {
@@ -125,6 +175,7 @@ const App: React.FC = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${aiSettings.apiKey}`,
         },
+        signal: abortControllerRef.current.signal,
         body: JSON.stringify({
           model: aiSettings.model,
           messages: [{ role: 'user', content: fullPrompt }],
@@ -142,10 +193,14 @@ const App: React.FC = () => {
       setAiResponseText(content);
       addToast('AI Generation Complete', 'success');
     } catch (err: any) {
-      setAiResponseText(`Error: ${err.message}`);
-      addToast(err.message, 'error');
+      if (err.name === 'AbortError') {
+        setAiResponseText('Operation was cancelled by user.');
+      } else {
+        setAiResponseText(`Error: ${err.message}`);
+        addToast(err.message, 'error');
+      }
     } finally {
-      setIsAIProcessing(false);
+      stopAIProcessing();
     }
   };
 
@@ -381,11 +436,14 @@ const App: React.FC = () => {
   };
 
   const renderAIResponse = () => {
-    if (isAIProcessing) {
+    if (isAIProcessing && !aiResponseText) {
       return (
         <div className="h-full flex flex-col items-center justify-center space-y-4 opacity-50">
-          <Loader2 className="w-12 h-12 text-indigo-500 animate-spin" />
-          <span className="text-[10px] font-bold tracking-[0.2em] uppercase">Processing Code Bridge...</span>
+          <div className="relative flex items-center justify-center">
+            <Bot className="w-12 h-12 text-indigo-500 animate-bounce" />
+            <div className="absolute inset-0 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
+          </div>
+          <span className="text-[10px] font-bold tracking-[0.2em] uppercase">Mining Intelligence...</span>
         </div>
       );
     }
@@ -749,15 +807,26 @@ const App: React.FC = () => {
                 </div>
               </Button>
               <Button
-                variant="primary"
+                variant={isAIProcessing ? 'secondary' : 'primary'}
                 size="xl"
-                className="w-full shadow-2xl shadow-indigo-900/20 group"
+                className={`w-full shadow-2xl group transition-all duration-300 ${isAIProcessing ? 'bg-slate-800 border-rose-500/50 text-rose-500 hover:bg-rose-500/10' : 'shadow-indigo-900/20'}`}
                 onClick={runWithAI}
-                disabled={!sourceCode.trim() || isAIProcessing}
+                disabled={!sourceCode.trim()}
               >
-                <div className="flex items-center justify-center gap-4">
-                  {isAIProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : <Play className="w-6 h-6 group-hover:translate-x-1 transition-transform" />}
-                  <span className="text-lg">Automate Bridge</span>
+                <div className="flex items-center justify-center gap-4 relative">
+                  {isAIProcessing ? (
+                    <div className="relative flex items-center justify-center">
+                      <Square className="w-5 h-5 fill-rose-500" />
+                      <svg className="absolute -inset-2.5 w-10 h-10 animate-spin text-rose-500/40">
+                        <circle cx="20" cy="20" r="18" stroke="currentColor" strokeWidth="2" fill="none" strokeDasharray="60 100" />
+                      </svg>
+                    </div>
+                  ) : (
+                    <Play className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                  )}
+                  <span className="text-lg">
+                    {isAIProcessing ? `Stop (${elapsedSeconds}s)` : 'Automate Bridge'}
+                  </span>
                 </div>
               </Button>
             </div>
@@ -766,30 +835,30 @@ const App: React.FC = () => {
 
         <aside id="output-section" className={`${layoutMode === 'split' ? 'lg:col-span-4 sticky top-32' : ''} space-y-8`}>
           <div className={`bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-2xl flex flex-col ${layoutMode === 'split' ? 'h-[750px]' : 'h-[600px]'}`}>
-            <div className="flex border-b border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-slate-800/50 overflow-x-auto scrollbar-none">
-              <button onClick={() => setActiveTab('prompt')} className={`flex-1 min-w-[100px] py-4 text-[9px] font-semibold uppercase tracking-widest transition-all ${activeTab === 'prompt' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-indigo-500'}`}>Prompt</button>
-              <button onClick={() => setActiveTab('ai-result')} className={`flex-1 min-w-[100px] py-4 text-[9px] font-semibold uppercase tracking-widest transition-all ${activeTab === 'ai-result' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-indigo-500'}`}>AI Output</button>
-              <button onClick={() => setActiveTab('json')} className={`flex-1 min-w-[100px] py-4 text-[9px] font-semibold uppercase tracking-widest transition-all ${activeTab === 'json' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-indigo-500'}`}>JSON</button>
+            <div className="flex flex-none border-b border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-slate-800/50 overflow-x-auto scrollbar-none">
+              <button onClick={() => setActiveTab('prompt')} className={`flex-none w-1/3 py-4 text-[11px] font-bold uppercase tracking-widest transition-all ${activeTab === 'prompt' ? 'bg-indigo-600 text-white shadow-inner' : 'text-slate-500 hover:text-indigo-500'}`}>Prompt</button>
+              <button onClick={() => setActiveTab('ai-result')} className={`flex-none w-1/3 py-4 text-[11px] font-bold uppercase tracking-widest transition-all ${activeTab === 'ai-result' ? 'bg-indigo-600 text-white shadow-inner' : 'text-slate-500 hover:text-indigo-500'}`}>AI Output</button>
+              <button onClick={() => setActiveTab('json')} className={`flex-none w-1/3 py-4 text-[11px] font-bold uppercase tracking-widest transition-all ${activeTab === 'json' ? 'bg-indigo-600 text-white shadow-inner' : 'text-slate-500 hover:text-indigo-500'}`}>JSON</button>
             </div>
 
             <div className="p-6 flex-grow flex flex-col gap-5 overflow-hidden">
               <div className="flex flex-col gap-3 flex-shrink-0">
                 <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em]">
-                    {activeTab === 'prompt' ? 'Bridge Instruction' : activeTab === 'ai-result' ? 'Direct Intelligence' : 'Ready JSON'}
+                  <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em] flex-shrink-0">
+                    {activeTab === 'prompt' ? 'Master Prompt' : activeTab === 'ai-result' ? 'AI Response' : 'Ready JSON Template'}
                   </span>
                   {activeTab === 'prompt' && generatedPrompt && (
-                    <button onClick={() => copyToClipboard(generatedPrompt)} className="px-4 py-2 rounded-lg text-[10px] font-semibold uppercase transition-all flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white">
+                    <button onClick={() => copyToClipboard(generatedPrompt)} className="px-4 py-1.5 rounded-lg text-[10px] font-semibold uppercase transition-all flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white">
                       <Copy className="w-3 h-3" /> Copy
                     </button>
                   )}
                 </div>
                 {activeTab === 'json' && pastedJson && (
                    <div className="flex flex-row gap-2">
-                     <button onClick={downloadResultJson} className="flex-1 px-4 py-2 rounded-lg text-[10px] font-semibold uppercase transition-all flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg">
+                     <button onClick={downloadResultJson} className="flex-1 px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg">
                         <Download className="w-3 h-3" /> Save JSON
                       </button>
-                      <button onClick={copyPasteReadyJson} className="flex-1 px-4 py-2 rounded-lg text-[10px] font-semibold uppercase transition-all flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-white border border-white/5">
+                      <button onClick={copyPasteReadyJson} className="flex-1 px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-white border border-white/5">
                         <ClipboardCheck className="w-3 h-3" /> Copy Paste-Ready
                       </button>
                    </div>
@@ -831,7 +900,7 @@ const App: React.FC = () => {
         </aside>
       </main>
 
-      <footer className="max-w-7xl mx-auto px-6 border-t border-slate-200 dark:border-white/5 mt-20 flex flex-col md:flex-row items-center justify-between gap-8 opacity-40">
+      <footer className="max-w-7xl mx-auto py-16 px-6 border-t border-slate-200 dark:border-white/5 mt-20 flex flex-col md:flex-row items-center justify-between gap-8 opacity-40">
         <div className="flex items-center gap-4 text-[10px] font-medium uppercase tracking-widest text-slate-500 dark:text-slate-400">
           <span>Copyright &copy; {currentYear}, A Project by</span>
           <a href="https://amirhp.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">Amirhp.Com</a>
