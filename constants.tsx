@@ -1,5 +1,36 @@
 import React from 'react';
-import { AIPortal } from './types';
+import { AIPortal, AIModelPreset } from './types';
+
+export const PREDEFINED_AI_MODELS: AIModelPreset[] = [
+  {
+    name: 'DeepSeek Chat',
+    endpoint: 'https://api.deepseek.com/v1/chat/completions',
+    model: 'deepseek-chat',
+    description: 'High-performance model with very low latency. Best for fast code generation.',
+    providerUrl: 'https://platform.deepseek.com/'
+  },
+  {
+    name: 'OpenRouter (Free Models)',
+    endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+    model: 'meta-llama/llama-3-8b-instruct:free',
+    description: 'Access various free and paid models (Llama, Gemma, Mistral) through one API.',
+    providerUrl: 'https://openrouter.ai/keys'
+  },
+  {
+    name: 'Groq Llama 3 (Fast)',
+    endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+    model: 'llama3-70b-8192',
+    description: 'Incredibly fast inference speed. Excellent for immediate code results.',
+    providerUrl: 'https://console.groq.com/'
+  },
+  {
+    name: 'OpenAI GPT-4o',
+    endpoint: 'https://api.openai.com/v1/chat/completions',
+    model: 'gpt-4o',
+    description: 'Most intelligent reasoning for complex React component structures.',
+    providerUrl: 'https://platform.openai.com/'
+  },
+];
 
 export const AI_PORTALS: AIPortal[] = [
   {
@@ -108,7 +139,7 @@ export const INITIAL_PROMPT_TEMPLATE = `Act as a Senior WordPress & Elementor Fu
 \`\`\`
 ---
 
-Generate the complete Elementor JSON now.  Give in Code Block . to Easy Copy, Prettify and Indent json Code.`.trim();
+Generate the complete Elementor JSON now. Ues a format so i can paste as widget, not import as json file. Give in Code Block to be Easy to Copy, Prettify and Indent json Code.`.trim();
 
 export const SAMPLE_HTML = `<div class="p-10 bg-indigo-900 rounded-2xl text-white shadow-xl flex flex-col items-center gap-6 border border-white/10">
   <h2 class="text-3xl font-semibold tracking-tight">Midnight HTML</h2>
