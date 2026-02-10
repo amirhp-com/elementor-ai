@@ -5,7 +5,7 @@ import { AIPortal, PromptConfig } from './types';
 export const AI_PORTALS: AIPortal[] = [
   {
     name: 'Google AI Studio',
-    url: 'https://aistudio.google.com/',
+    url: 'https://aistudio.google.com/u/2/prompts/new_chat?model=gemini-3-flash-preview',
     icon: '✨',
     color: 'bg-blue-600 hover:bg-blue-500'
   },
