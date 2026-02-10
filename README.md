@@ -1,18 +1,19 @@
-# Elementor AI Prompt Master v1.9
+# Elementor AI Prompt Master v2.0
 
 A high-end professional utility for developers to bridge the gap between modern web code (HTML/JSX/React) and Elementor v3.0+ Flexbox/Grid architectures.
 
-## 🌟 New in v1.9
-- **Midnight & Daylight Themes**: Fully integrated theme switcher (Sun/Moon) with local storage persistence.
-- **Dynamic Toast System**: Context-aware notifications with specific icons and color states (Success, Info, Warning, Error).
-- **Context-Aware Code Samples**: The "Load Default" engine intelligently provides HTML, JSX, or React Component snippets based on your active input mode.
-- **Refined Bridge Logic**: Updated prompt templates to prioritize Elementor's latest Flexbox and Grid Container schema.
-- **Global AI Hub**: Direct access to top-tier AI models including Gemini, AI Studio, Claude, DeepSeek, and more.
+## 🚀 New in v2.0
+- **Paste-Ready JSON Conversion**: Instantly transform standard Elementor template JSON into the specific "Paste" format required for direct clipboard insertion in the Elementor editor.
+- **Persistence 2.0**: Enhanced local storage logic now saves your preferred layout (Side-by-Side vs Stacked) along with theme and AI configurations.
+- **Side-by-Side Default View**: Optimized for widescreen monitors with a refined split-screen workspace enabled by default.
+- **Refined Action Bar**: Grouped "Save JSON" and "Copy Paste-Ready" buttons for a faster conversion workflow.
+- **Version 2.0 Engine**: Minor updates to the master bridge prompt for even better container hierarchy detection.
 
-## 🚀 Key Features
+## 🌟 Key Features
 - **Master Bridge Engine**: Generates highly specialized instructions for LLMs to ensure valid JSON output.
 - **Live UI Simulation**: Real-time rendering of your source code within a sandboxed environment.
-- **Custom Template Editor**: Deep-link your own system instructions into the prompt generation logic.
+- **Midnight & Daylight Themes**: Full visual adaptability with state-saving.
+- **Global AI Hub**: Direct access to top-tier AI models including Gemini, AI Studio, Claude, DeepSeek, and more.
 - **One-Click Workflow**: Instant "Generate & Copy" shortcuts (Ctrl+C / Ctrl+Enter).
 
 ## 📦 Deployment
@@ -22,9 +23,6 @@ This app is built with React 19 and Vite.
 1. Connect your repository.
 2. **Build Command**: `npm run build`
 3. **Publish Directory**: `dist`
-
-### GitHub Pages
-The project includes a pre-configured GitHub Action (`.github/workflows/deploy.yml`) that automatically builds and deploys to the `gh-pages` branch on every push to `main`.
 
 ## 🛠️ Technical Stack
 - **React 19**: Modern UI composition.
