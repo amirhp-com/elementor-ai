@@ -483,7 +483,7 @@ const App: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-200 selection:bg-indigo-500/30 transition-all duration-500 pt-32 pb-20">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-200 selection:bg-indigo-500/30 transition-all duration-500 pt-32 pb-8">
 
       {/* Dynamic Toasts */}
       <div className="fixed top-24 right-6 z-[9999] flex flex-col gap-3 pointer-events-none">
@@ -900,7 +900,7 @@ const App: React.FC = () => {
         </aside>
       </main>
 
-      <footer className="max-w-7xl mx-auto py-16 px-6 border-t border-slate-200 dark:border-white/5 mt-20 flex flex-col md:flex-row items-center justify-between gap-8 opacity-40">
+      <footer className="max-w-7xl mx-auto py-8 px-6 border-t border-slate-200 dark:border-white/5 mt-8 flex flex-col md:flex-row items-center justify-between gap-8 opacity-40">
         <div className="flex items-center gap-4 text-[10px] font-medium uppercase tracking-widest text-slate-500 dark:text-slate-400">
           <span>Copyright &copy; {currentYear}, A Project by</span>
           <a href="https://amirhp.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">Amirhp.Com</a>
